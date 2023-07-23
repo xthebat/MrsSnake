@@ -18,10 +18,13 @@ public:
 	ASnakeBase();
 
 	UPROPERTY(EditAnywhere)
-	int SnakeInitialSize = 1;
+	int SnakeInitialSize = 5;
 
 	UPROPERTY(EditAnywhere)
-	float SnakeElementSpace = {};
+	float SnakeElementSpace = 10.0;
+
+	UPROPERTY(EditAnywhere)
+	float SnakeTickTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ASnakeBaseElement> SnakeBaseElementClass;
@@ -32,7 +35,11 @@ protected:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	TArray<ASnakeBaseElement*> SnakeElements = {};
+	UPROPERTY()
+	TArray<UChildActorComponent*> SnakeComponents = {};
+
+	UPROPERTY()
+	float SnakeElementSize = {};
 
 public:
 	// Called every frame

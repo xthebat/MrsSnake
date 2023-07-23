@@ -16,6 +16,9 @@ ASnakeBase::ASnakeBase()
 void ASnakeBase::BeginPlay()
 {
 	Super::BeginPlay();
+	SetActorTickInterval(SnakeTickTime);
+	const auto Enabled = SnakeElementSize > 0.0f && SnakeComponents.Num() > 0;
+	SetActorTickEnabled(Enabled);
 }
 
 void ASnakeBase::OnConstruction(const FTransform& Transform)
@@ -30,6 +33,9 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 	auto Origin = FVector{};
 	auto Extents = FVector{};
 
+	SnakeElementSize = {};
+	SnakeComponents.SetNum(SnakeInitialSize);
+
 	for (int i = 0; i < SnakeInitialSize; i++)
 	{
 		const auto Component = NewObject<UChildActorComponent>(this);
@@ -41,7 +47,7 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 		const auto SnakeElement = Component->GetChildActor();
 		SnakeElement->GetActorBounds(false, Origin, Extents, true);
 
-		const auto SnakeElementSize = Extents.X * 2.0f;
+		SnakeElementSize = Extents.X * 2.0f;
 		const auto SnakeElementOffset = i * (SnakeElementSize + SnakeElementSpace);
 		const auto SnakeElementVector = FVector{SnakeElementOffset, 0, 0};
 		const auto Rotated = Rotation.RotateVector(SnakeElementVector);
@@ -50,6 +56,8 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 		Component->AddRelativeLocation(Rotated);
 
 		Component->CreationMethod = EComponentCreationMethod::UserConstructionScript;
+
+		SnakeComponents[i] = Component;
 	}
 }
 
@@ -57,4 +65,22 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 void ASnakeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Tick disabled in begin play if no components
+
+	const auto Transform = SnakeComponents[0]->GetComponentTransform();
+	const auto Step = SnakeElementSize + SnakeElementSpace;
+
+	// TODO: Handle click
+	const auto Direction = FVector{-Step, 0.0f, 0.0f};
+
+	const auto Offset = Transform.Rotator().RotateVector(Direction);
+
+	for (int i = SnakeComponents.Num() - 1; i > 0; i--)
+	{
+		const auto Location = SnakeComponents[i - 1]->GetComponentLocation();
+		SnakeComponents[i]->SetWorldLocation(Location);
+	}
+
+	SnakeComponents[0]->AddRelativeLocation(Offset);
 }
