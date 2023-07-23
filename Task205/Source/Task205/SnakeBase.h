@@ -12,19 +12,20 @@ UCLASS()
 class TASK205_API ASnakeBase : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ASnakeBase();
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere)
 	int SnakeInitialSize = 1;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnywhere)
 	float SnakeElementSpace = {};
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ASnakeBaseElement> SnakeBaseElementClass;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -32,7 +33,8 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	TArray<ASnakeBaseElement*> SnakeElements = {};
-public:	
+
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 };

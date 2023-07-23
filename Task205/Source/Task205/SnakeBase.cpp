@@ -22,21 +22,34 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	if (Sna)
+	if (SnakeBaseElementClass == nullptr)
+		return;
+
+	const auto Rotation = Transform.GetRotation();
+
+	auto Origin = FVector{};
+	auto Extents = FVector{};
 
 	for (int i = 0; i < SnakeInitialSize; i++)
 	{
-		const auto SnakeElement = GetWorld()->SpawnActor<ASnakeBaseElement>(SnakeBaseElementClass, Transform);
-		auto Origin = FVector{};
-		auto Extents = FVector{};
+		const auto Component = NewObject<UChildActorComponent>(this);
+		Component->RegisterComponent();
+
+		Component->SetChildActorClass(SnakeBaseElementClass);
+		Component->CreateChildActor();
+
+		const auto SnakeElement = Component->GetChildActor();
 		SnakeElement->GetActorBounds(false, Origin, Extents, true);
+
 		const auto SnakeElementSize = Extents.X * 2.0f;
-		const auto SnakeElementOffset = SnakeElements.Num() * (SnakeElementSize + SnakeElementSpace);
-		const auto SnakeElementVector = FVector{SnakeElementOffset, 0.0f, 0.0f};
-		const auto SnakeElementTransform = FTransform{SnakeElementVector};
-		SnakeElement->SetActorTransform(SnakeElementTransform);
-		SnakeElement->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-		SnakeElements.Add(SnakeElement);
+		const auto SnakeElementOffset = i * (SnakeElementSize + SnakeElementSpace);
+		const auto SnakeElementVector = FVector{SnakeElementOffset, 0, 0};
+		const auto Rotated = Rotation.RotateVector(SnakeElementVector);
+
+		Component->SetWorldTransform(Transform);
+		Component->AddRelativeLocation(Rotated);
+
+		Component->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 	}
 }
 
