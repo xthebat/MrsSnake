@@ -6,15 +6,6 @@
 #include "SnakeBase.h"
 #include "Engine/Classes/Camera/CameraComponent.h"
 
-UENUM()
-enum class EMovementDirection
-{
-	Up,
-	Down,
-	Left,
-	Right
-};
-
 // Sets default values
 ASnakePlayerPawn::ASnakePlayerPawn()
 {
@@ -27,14 +18,7 @@ ASnakePlayerPawn::ASnakePlayerPawn()
 void ASnakePlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorRotation({-90.0f, 0, 0});
-	// CreateSnakeActor();
-}
-
-void ASnakePlayerPawn::CreateSnakeActor()
-{
-	const auto Transform = FTransform{};
-	SnakeActor = GetWorld()->SpawnActor<ASnakeBase>(SnakeActorClass, Transform);
+	SetActorRotation({-90.0f, 0, 90.0f});
 }
 
 // Called every frame
@@ -47,4 +31,25 @@ void ASnakePlayerPawn::Tick(float DeltaTime)
 void ASnakePlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	PlayerInputComponent->BindAxis("Vertical", this, &ASnakePlayerPawn::HandlePlayerVerticalInput);
+	PlayerInputComponent->BindAxis("Horizontal", this, &ASnakePlayerPawn::HandlePlayerHorizontalInput);
+}
+
+void ASnakePlayerPawn::HandlePlayerVerticalInput(float Value)
+{
+	if (SnakeActor.IsValid() && Value != 0.0f)
+	{
+		const auto Direction = Value > 0.0f ? EMovementDirection::Up : EMovementDirection::Down;
+		SnakeActor->SetDirection(Direction);
+	}
+}
+
+void ASnakePlayerPawn::HandlePlayerHorizontalInput(float Value)
+{
+	if (SnakeActor.IsValid() && Value != 0.0f)
+	{
+		const auto Direction = Value > 0.0f ? EMovementDirection::Left : EMovementDirection::Right;
+		SnakeActor->SetDirection(Direction);
+	}
 }

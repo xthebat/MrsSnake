@@ -28,6 +28,7 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 	if (SnakeBaseElementClass == nullptr)
 		return;
 
+	const auto Scale = Transform.GetScale3D();
 	const auto Rotation = Transform.GetRotation();
 
 	auto Origin = FVector{};
@@ -35,6 +36,7 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 
 	SnakeElementSize = {};
 	SnakeComponents.SetNum(SnakeInitialSize);
+	DirectionVector = {1.0f, 0.0f, 0.0f};
 
 	for (int i = 0; i < SnakeInitialSize; i++)
 	{
@@ -49,16 +51,18 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 
 		SnakeElementSize = Extents.X * 2.0f;
 		const auto SnakeElementOffset = i * (SnakeElementSize + SnakeElementSpace);
-		const auto SnakeElementVector = FVector{SnakeElementOffset, 0, 0};
-		const auto Rotated = Rotation.RotateVector(SnakeElementVector);
+		// TODO: Add function to calc SnakeElementVector
+		const auto SnakeElementVector = Scale * DirectionVector * SnakeElementOffset;
 
 		Component->SetWorldTransform(Transform);
-		Component->AddRelativeLocation(Rotated);
+		Component->AddRelativeLocation(Rotation.RotateVector(SnakeElementVector));
 
 		Component->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 
 		SnakeComponents[i] = Component;
 	}
+
+	DirectionVector = -DirectionVector;
 }
 
 // Called every frame
@@ -69,10 +73,9 @@ void ASnakeBase::Tick(float DeltaTime)
 	// Tick disabled in begin play if no components
 
 	const auto Transform = SnakeComponents[0]->GetComponentTransform();
-	const auto Step = SnakeElementSize + SnakeElementSpace;
+	const auto SnakeElementOffset = SnakeElementSize + SnakeElementSpace;
 
-	// TODO: Handle click
-	const auto Direction = FVector{-Step, 0.0f, 0.0f};
+	const auto Direction = Transform.GetScale3D() * SnakeElementOffset * DirectionVector;
 
 	const auto Offset = Transform.Rotator().RotateVector(Direction);
 
@@ -83,4 +86,28 @@ void ASnakeBase::Tick(float DeltaTime)
 	}
 
 	SnakeComponents[0]->AddRelativeLocation(Offset);
+}
+
+void ASnakeBase::SetDirection(EMovementDirection Direction)
+{
+	FVector NewDirectionVector = {0.0f, 0.0f, 0.0f};
+
+	switch (Direction)
+	{
+	case EMovementDirection::Up:
+		NewDirectionVector.Y = 1.0f;
+		break;
+	case EMovementDirection::Down:
+		NewDirectionVector.Y = -1.0f;
+		break;
+	case EMovementDirection::Left:
+		NewDirectionVector.X = 1.0f;
+		break;
+	case EMovementDirection::Right:
+		NewDirectionVector.X = -1.0f;
+		break;
+	}
+
+	if (DirectionVector != -NewDirectionVector)
+		DirectionVector = NewDirectionVector;
 }

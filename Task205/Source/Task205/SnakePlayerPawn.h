@@ -8,6 +8,15 @@
 
 class ASnakeBase;
 
+UENUM()
+enum class EMovementDirection
+{
+	Up,
+	Down,
+	Left,
+	Right
+};
+
 UCLASS()
 class TASK205_API ASnakePlayerPawn : public APawn
 {
@@ -21,19 +30,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(BlueprintReadWrite)
-	ASnakeBase* SnakeActor;
-
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<ASnakeBase> SnakeActorClass;
+	TSoftObjectPtr<ASnakeBase> SnakeActor;
 
-	void CreateSnakeActor();
-
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
+	void HandlePlayerVerticalInput(float Value);
+
+	UFUNCTION()
+	void HandlePlayerHorizontalInput(float Value);
 };

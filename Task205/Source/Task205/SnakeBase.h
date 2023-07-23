@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SnakePlayerPawn.h"
 #include "GameFramework/Actor.h"
 #include "SnakeBase.generated.h"
 
@@ -41,7 +42,11 @@ protected:
 	UPROPERTY()
 	float SnakeElementSize = {};
 
+	UPROPERTY()
+	FVector DirectionVector = {};
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void SetDirection(EMovementDirection Direction);
 };
