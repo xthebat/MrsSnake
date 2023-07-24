@@ -39,11 +39,13 @@ protected:
 	UPROPERTY()
 	TArray<UChildActorComponent*> SnakeComponents = {};
 
-	UPROPERTY()
+	UPROPERTY()  // required for OnConstruction
 	float SnakeElementSize = {};
 
-	UPROPERTY()
-	FVector DirectionVector = {};
+	FVector CurrentDirection = {};
+
+	UPROPERTY()  // required for OnConstruction
+	FVector PendingDirection = {};
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

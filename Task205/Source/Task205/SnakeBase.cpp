@@ -18,7 +18,10 @@ void ASnakeBase::BeginPlay()
 	Super::BeginPlay();
 	SetActorTickInterval(SnakeTickTime);
 	const auto Enabled = SnakeElementSize > 0.0f && SnakeComponents.Num() > 0;
-	SetActorTickEnabled(Enabled);
+	SetActorTickEnabled(Enabled);  // Disable ticks if snake is invalid
+
+	// Just in case set current direction if player press something before Tick
+	CurrentDirection = PendingDirection;
 }
 
 void ASnakeBase::OnConstruction(const FTransform& Transform)
@@ -36,7 +39,8 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 
 	SnakeElementSize = {};
 	SnakeComponents.SetNum(SnakeInitialSize);
-	DirectionVector = {1.0f, 0.0f, 0.0f};
+
+	const auto Direction = FVector{1.0f, 0.0f, 0.0f};
 
 	for (int i = 0; i < SnakeInitialSize; i++)
 	{
@@ -51,8 +55,7 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 
 		SnakeElementSize = Extents.X * 2.0f;
 		const auto SnakeElementOffset = i * (SnakeElementSize + SnakeElementSpace);
-		// TODO: Add function to calc SnakeElementVector
-		const auto SnakeElementVector = Scale * DirectionVector * SnakeElementOffset;
+		const auto SnakeElementVector = Scale * Direction * SnakeElementOffset;
 
 		Component->SetWorldTransform(Transform);
 		Component->AddRelativeLocation(Rotation.RotateVector(SnakeElementVector));
@@ -62,7 +65,7 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 		SnakeComponents[i] = Component;
 	}
 
-	DirectionVector = -DirectionVector;
+	PendingDirection = -Direction;
 }
 
 // Called every frame
@@ -70,12 +73,12 @@ void ASnakeBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Tick disabled in begin play if no components
+	// Tick disabled in begin play if no components so snake is valid and have at least one component
 
 	const auto Transform = SnakeComponents[0]->GetComponentTransform();
 	const auto SnakeElementOffset = SnakeElementSize + SnakeElementSpace;
 
-	const auto Direction = Transform.GetScale3D() * SnakeElementOffset * DirectionVector;
+	const auto Direction = Transform.GetScale3D() * SnakeElementOffset * PendingDirection;
 
 	const auto Offset = Transform.Rotator().RotateVector(Direction);
 
@@ -86,6 +89,8 @@ void ASnakeBase::Tick(float DeltaTime)
 	}
 
 	SnakeComponents[0]->AddRelativeLocation(Offset);
+
+	CurrentDirection = PendingDirection;
 }
 
 void ASnakeBase::SetDirection(EMovementDirection Direction)
@@ -108,6 +113,7 @@ void ASnakeBase::SetDirection(EMovementDirection Direction)
 		break;
 	}
 
-	if (DirectionVector != -NewDirectionVector)
-		DirectionVector = NewDirectionVector;
+	// Can't move backward
+	if (CurrentDirection != -NewDirectionVector)
+		PendingDirection = NewDirectionVector;
 }
