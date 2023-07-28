@@ -28,24 +28,32 @@ public:
 	float SnakeTickTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<ASnakeBaseElement> SnakeBaseElementClass;
+	UStaticMesh* HeadStaticMesh = {};
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMesh* BodyStaticMesh = {};
+
+	// UPROPERTY(EditDefaultsOnly)
+	// TSubclassOf<ASnakeBaseElement> SnakeBaseElementClass;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UChildActorComponent* AddElement(UStaticMesh* Mesh, TOptional<FVector> Location = {});
+
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	bool IsGrow = true;
 
 	UPROPERTY()
 	TArray<UChildActorComponent*> SnakeComponents = {};
 
-	UPROPERTY()  // required for OnConstruction
+	UPROPERTY() // required for OnConstruction
 	float SnakeElementSize = {};
 
-	FVector CurrentDirection = {};
+	EMovementDirection PendingDirection = EMovementDirection::Forward;
 
-	UPROPERTY()  // required for OnConstruction
-	FVector PendingDirection = {};
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -11,14 +11,13 @@ ASnakePlayerPawn::ASnakePlayerPawn()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	RootComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCameraRoot"));
+	// CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCamera"));
 }
 
 // Called when the game starts or when spawned
 void ASnakePlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorRotation({-90.0f, 0, 90.0f});
 }
 
 // Called every frame

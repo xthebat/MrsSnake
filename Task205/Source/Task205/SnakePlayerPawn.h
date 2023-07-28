@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "SnakePlayerPawn.generated.h"
 
+class UCameraComponent;
 class ASnakeBase;
 
 UENUM()
@@ -13,8 +14,11 @@ enum class EMovementDirection
 {
 	Up,
 	Down,
+
 	Left,
-	Right
+	Right,
+
+	Forward
 };
 
 UCLASS()
