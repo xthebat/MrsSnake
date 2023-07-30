@@ -40,17 +40,28 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UChildActorComponent* AddElement(UStaticMesh* Mesh, TOptional<FVector> Location = {});
-
 	virtual void OnConstruction(const FTransform& Transform) override;
-
-	bool IsGrow = true;
 
 	UPROPERTY()
 	TArray<UChildActorComponent*> SnakeComponents = {};
 
-	UPROPERTY() // required for OnConstruction
-	float SnakeElementSize = {};
+	static FRotator Direction2Rotator(EMovementDirection Direction);
+
+	static ASnakeBaseElement* Component2Element(const UChildActorComponent* Component);
+
+	ECollisionEnabled::Type ToggleCollision(ECollisionEnabled::Type NewCollisionType);
+
+	UChildActorComponent* GrowSnake();
+
+	UChildActorComponent* GetHead() const;
+	UChildActorComponent* GetNeck() const;
+	UChildActorComponent* GetTail() const;
+
+	void MoveSnake(EMovementDirection Direction);
+
+	bool IsGrowPending = false;
+
+	ECollisionEnabled::Type CollisionState = ECollisionEnabled::QueryOnly;
 
 	EMovementDirection PendingDirection = EMovementDirection::Forward;
 
@@ -59,4 +70,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetDirection(EMovementDirection Direction);
+	void HrumHrum(AActor* Whom);
+
+	void HandleBeginOverlap(
+		ASnakeBaseElement* SnakeElement,
+		UPrimitiveComponent* SnakeComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComponent);
 };

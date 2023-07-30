@@ -5,6 +5,9 @@
 
 #include "DrawDebugHelpers.h"
 #include "SnakeBaseElement.h"
+#include "SnakeGameModeBase.h"
+#include "Apple.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASnakeBase::ASnakeBase()
@@ -18,37 +21,101 @@ void ASnakeBase::BeginPlay()
 {
 	Super::BeginPlay();
 	SetActorTickInterval(SnakeTickTime);
-	const auto Enabled = SnakeElementSize > 0.0f && SnakeComponents.Num() > 0;
-	SetActorTickEnabled(Enabled); // Disable ticks if snake is invalid
-
-	// Just in case set current direction if player press something before Tick
-	// ForwardVector = PendingDirection;
+	SetActorTickEnabled(SnakeComponents.Num() > 1); // Disable ticks if snake is invalid
 }
 
-UChildActorComponent* ASnakeBase::AddElement(UStaticMesh* Mesh, TOptional<FVector> Location)
+FRotator ASnakeBase::Direction2Rotator(EMovementDirection Direction)
 {
+	FRotator Rotator = {0.0f, 0.0f, 0.0f};
+
+	switch (Direction)
+	{
+	case EMovementDirection::Up:
+		Rotator.Pitch += 90.0f;
+		break;
+	case EMovementDirection::Down:
+		Rotator.Pitch -= 90.0f;
+		break;
+	case EMovementDirection::Left:
+		Rotator.Yaw -= 90.0f;
+		break;
+	case EMovementDirection::Right:
+		Rotator.Yaw += 90.0f;
+		break;
+	case EMovementDirection::Forward:
+		break;
+	}
+
+	return Rotator;
+}
+
+ASnakeBaseElement* ASnakeBase::Component2Element(const UChildActorComponent* Component)
+{
+	return Cast<ASnakeBaseElement>(Component->GetChildActor());
+}
+
+ECollisionEnabled::Type ASnakeBase::ToggleCollision(ECollisionEnabled::Type NewCollisionType)
+{
+	if (NewCollisionType != CollisionState)
+	{
+		for (const auto It : SnakeComponents)
+			Component2Element(It)->GetComponent()->SetCollisionEnabled(NewCollisionType);
+		const auto PreviousState = CollisionState;
+		CollisionState = NewCollisionType;
+		return PreviousState;
+	}
+	return CollisionState;
+}
+
+UChildActorComponent* ASnakeBase::GrowSnake()
+{
+	const auto IsHead = SnakeComponents.Num() == 0;
+
+	FVector Location = FVector::ZeroVector;
+
 	const auto Component = NewObject<UChildActorComponent>(this);
 	Component->RegisterComponent();
 
 	Component->SetChildActorClass(ASnakeBaseElement::StaticClass());
 	Component->CreateChildActor();
 
-	const auto SnakeElement = Cast<ASnakeBaseElement>(Component->GetChildActor());
+	const auto Mesh = IsHead ? HeadStaticMesh : BodyStaticMesh;
 
-	SnakeElement->SetStaticMesh(Mesh);
+	Component2Element(Component)->Initialize(this, Mesh, ECollisionEnabled::NoCollision);
 
 	Component->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("Location %s"),
-		*Location->ToString())
+	if (!IsHead)
+	{
+		const auto TailActor = Component2Element(GetTail());
+		const auto GrownActor = Component2Element(Component);
 
-	if (Location.IsSet())
-		Component->SetRelativeLocation(*Location);
+		const auto Offset = GrownActor->GetXOffset(SnakeElementSpace) +
+			TailActor->GetXOffset(SnakeElementSpace);
+
+		Location = GetTail()->GetRelativeLocation() - Offset;
+	}
+
+	SnakeComponents.Add(Component);
+
+	Component->SetRelativeLocation(Location);
 
 	return Component;
+}
+
+UChildActorComponent* ASnakeBase::GetHead() const
+{
+	return SnakeComponents[0];
+}
+
+UChildActorComponent* ASnakeBase::GetNeck() const
+{
+	return SnakeComponents[1];
+}
+
+UChildActorComponent* ASnakeBase::GetTail() const
+{
+	return SnakeComponents.Last();
 }
 
 void ASnakeBase::OnConstruction(const FTransform& Transform)
@@ -58,26 +125,34 @@ void ASnakeBase::OnConstruction(const FTransform& Transform)
 	if (HeadStaticMesh == nullptr || BodyStaticMesh == nullptr)
 		return;
 
-	SnakeElementSize = {};
-	SnakeComponents.SetNum(SnakeInitialSize);
+	SnakeComponents.Empty(SnakeInitialSize);
 
-	const auto Direction = FVector{-1.0f, 0.0f, 0.0f};
+	while (SnakeComponents.Num() < SnakeInitialSize)
+		GrowSnake()->CreationMethod = EComponentCreationMethod::UserConstructionScript;
+}
 
-	for (int i = 0; i < SnakeInitialSize; i++)
+void ASnakeBase::MoveSnake(EMovementDirection Direction)
+{
+	const auto PreviousCollisionState = ToggleCollision(ECollisionEnabled::NoCollision);
+
+	const auto Rotator = Direction2Rotator(Direction);
+
+	for (int i = SnakeComponents.Num() - 1; i > 0; i--)
 	{
-		const auto Mesh = i == 0 ? HeadStaticMesh : BodyStaticMesh;
-		const auto Box = Mesh->GetBoundingBox();
-
-		SnakeElementSize = (Box.Max - Box.Min).X;
-		const auto FloatOffset = i * (SnakeElementSize + SnakeElementSpace);
-		const auto VectorOffset = Direction * FloatOffset;
-
-		const auto Component = AddElement(Mesh, VectorOffset);
-
-		Component->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-
-		SnakeComponents[i] = Component;
+		const auto PreviousTransform = SnakeComponents[i - 1]->GetRelativeTransform();
+		SnakeComponents[i]->SetRelativeTransform(PreviousTransform);
 	}
+
+	GetHead()->AddLocalRotation(Rotator);
+
+	const auto Offset = Component2Element(GetHead())->GetXOffset(SnakeElementSpace) +
+		Component2Element(GetNeck())->GetXOffset(SnakeElementSpace);
+
+	GetHead()->AddLocalOffset(Offset);
+
+	PendingDirection = EMovementDirection::Forward;
+
+	ToggleCollision(PreviousCollisionState);
 }
 
 // Called every frame
@@ -87,64 +162,44 @@ void ASnakeBase::Tick(float DeltaTime)
 
 	// Tick disabled in begin play if no components so snake is valid and have at least one component
 
-	FRotator Rotator = {0.0f, 0.0f, 0.0f};
-
-	switch (PendingDirection)
+	if (IsGrowPending)
 	{
-	case EMovementDirection::Up:
-		Rotator.Pitch += 90.0f;
-		break;
-	case EMovementDirection::Down:
-		Rotator.Pitch -= 90.0f;
-		break;
-	case EMovementDirection::Left:
-		Rotator.Yaw += 90.0f;
-		break;
-	case EMovementDirection::Right:
-		Rotator.Yaw -= 90.0f;
-		break;
-	case EMovementDirection::Forward:
-		break;
+		IsGrowPending = false;
+		GrowSnake();
 	}
 
-	if (IsGrow)
-	{
-		// IsGrow = false;
-		const auto LastComponent = SnakeComponents.Last();
-		const auto Transform = LastComponent->GetRelativeTransform();
-		const auto GrownComponent = AddElement(BodyStaticMesh, Transform.GetLocation());
-		SnakeComponents.Add(GrownComponent);
-	}
-
-	for (int i = SnakeComponents.Num() - 1; i > 0; i--)
-	{
-		const auto PreviousTransform = SnakeComponents[i - 1]->GetRelativeTransform();
-		SnakeComponents[i]->SetRelativeTransform(PreviousTransform);
-	}
-
-	SnakeComponents[0]->AddLocalRotation(Rotator);
-
-	const auto ForwardVector = SnakeComponents[0]->GetForwardVector();
-
-	DrawDebugLine(GetWorld(),
-	              SnakeComponents[0]->GetComponentLocation(),
-	              SnakeComponents[0]->GetComponentLocation() + ForwardVector * 1000,
-	              FColor::Emerald, false, SnakeTickTime, 0, 10);
-
-	UE_LOG(
-		LogTemp,
-		Warning,
-		TEXT("Rotator: %s ForwardVector %s"),
-		*Rotator.ToString(),
-		*ForwardVector.ToString());
-
-	const auto Scale = GetActorScale3D();
-	const auto Spacing = SnakeElementSize + SnakeElementSpace;
-	const auto Offset = Scale * Spacing * ForwardVector;
-
-	SnakeComponents[0]->AddWorldOffset(Offset);
-
-	PendingDirection = EMovementDirection::Forward;
+	MoveSnake(PendingDirection);
 }
 
-void ASnakeBase::SetDirection(EMovementDirection Direction) { PendingDirection = Direction; }
+void ASnakeBase::SetDirection(EMovementDirection Direction)
+{
+	PendingDirection = Direction;
+}
+
+void ASnakeBase::HrumHrum(AActor* Whom)
+{
+	IsGrowPending = true;
+	Whom->Destroy();
+}
+
+void ASnakeBase::HandleBeginOverlap(
+	ASnakeBaseElement* SnakeElement,
+	UPrimitiveComponent* SnakeComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComponent)
+{
+	if (SnakeElement != Component2Element(GetHead()))
+		return;
+
+	if (OtherActor == Component2Element(GetNeck()))
+		return;
+
+	if (Cast<AApple>(OtherActor) != nullptr)
+	{
+		HrumHrum(OtherActor);
+		ASnakeGameModeBase::GetFor(this)->SpawnApple();
+		return;
+	}
+
+	ASnakeGameModeBase::GetFor(this)->GameOver(this);
+}

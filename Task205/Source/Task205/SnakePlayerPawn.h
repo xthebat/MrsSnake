@@ -45,8 +45,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-	void HandlePlayerVerticalInput(float Value);
-
+	void HandlePlayerVerticalUp();
 	UFUNCTION()
-	void HandlePlayerHorizontalInput(float Value);
+	void HandlePlayerVerticalDown();
+	UFUNCTION()
+	void HandlePlayerVerticalLeft();
+	UFUNCTION()
+	void HandlePlayerVerticalRight();
 };

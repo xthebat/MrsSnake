@@ -31,24 +31,32 @@ void ASnakePlayerPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("Vertical", this, &ASnakePlayerPawn::HandlePlayerVerticalInput);
-	PlayerInputComponent->BindAxis("Horizontal", this, &ASnakePlayerPawn::HandlePlayerHorizontalInput);
+	PlayerInputComponent->BindAction("Up", IE_Pressed, this, &ASnakePlayerPawn::HandlePlayerVerticalUp);
+	PlayerInputComponent->BindAction("Down", IE_Pressed, this, &ASnakePlayerPawn::HandlePlayerVerticalDown);
+	PlayerInputComponent->BindAction("Left", IE_Pressed, this, &ASnakePlayerPawn::HandlePlayerVerticalLeft);
+	PlayerInputComponent->BindAction("Right", IE_Pressed, this, &ASnakePlayerPawn::HandlePlayerVerticalRight);
 }
 
-void ASnakePlayerPawn::HandlePlayerVerticalInput(float Value)
+void ASnakePlayerPawn::HandlePlayerVerticalUp()
 {
-	if (SnakeActor.IsValid() && Value != 0.0f)
-	{
-		const auto Direction = Value > 0.0f ? EMovementDirection::Up : EMovementDirection::Down;
-		SnakeActor->SetDirection(Direction);
-	}
+	if (SnakeActor.IsValid())
+		SnakeActor->SetDirection(EMovementDirection::Up);
 }
 
-void ASnakePlayerPawn::HandlePlayerHorizontalInput(float Value)
+void ASnakePlayerPawn::HandlePlayerVerticalDown()
 {
-	if (SnakeActor.IsValid() && Value != 0.0f)
-	{
-		const auto Direction = Value > 0.0f ? EMovementDirection::Left : EMovementDirection::Right;
-		SnakeActor->SetDirection(Direction);
-	}
+	if (SnakeActor.IsValid())
+		SnakeActor->SetDirection(EMovementDirection::Down);
+}
+
+void ASnakePlayerPawn::HandlePlayerVerticalLeft()
+{
+	if (SnakeActor.IsValid())
+		SnakeActor->SetDirection(EMovementDirection::Left);
+}
+
+void ASnakePlayerPawn::HandlePlayerVerticalRight()
+{
+	if (SnakeActor.IsValid())
+		SnakeActor->SetDirection(EMovementDirection::Right);
 }
