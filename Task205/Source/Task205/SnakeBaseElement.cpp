@@ -19,6 +19,7 @@ ASnakeBaseElement::ASnakeBaseElement()
 void ASnakeBaseElement::BeginPlay()
 {
 	Super::BeginPlay();
+
 	GetComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASnakeBaseElement::HandleBeginOverlap);
 }
 
@@ -30,7 +31,7 @@ void ASnakeBaseElement::HandleBeginOverlap(
 	bool bFromSweep,
 	const FHitResult& SweepResult)
 {
-	Snake->HandleBeginOverlap(this, OverlappedComponent, OtherActor, OtherComponent);
+	Snake->HandleCollision(this, OverlappedComponent, OtherActor, OtherComponent);
 }
 
 UStaticMeshComponent* ASnakeBaseElement::GetComponent() const

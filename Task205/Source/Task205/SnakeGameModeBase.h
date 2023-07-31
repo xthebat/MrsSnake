@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "SnakeGameModeBase.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(SnakeLog, Log, All);
+
 class AApple;
 
 /**
@@ -19,12 +21,16 @@ class TASK205_API ASnakeGameModeBase : public AGameModeBase
 public:
 	virtual void Tick(float DeltaSeconds) override;
 
-	static ASnakeGameModeBase* GetFor(const AActor* Context);
+	virtual void BeginPlay() override;
+
+	static UWorld* GetWorld();
+	static APlayerController* GetPlayer();
+	static ASnakeGameModeBase* Get();
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AApple> AppleClass;
 
 	void SpawnApple();
 
-	void GameOver(AActor* Whom);
+	void GameOver();
 };

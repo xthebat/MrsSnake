@@ -182,12 +182,14 @@ void ASnakeBase::HrumHrum(AActor* Whom)
 	Whom->Destroy();
 }
 
-void ASnakeBase::HandleBeginOverlap(
+void ASnakeBase::HandleCollision(
 	ASnakeBaseElement* SnakeElement,
 	UPrimitiveComponent* SnakeComponent,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComponent)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Collision!!!"));
+
 	if (SnakeElement != Component2Element(GetHead()))
 		return;
 
@@ -197,9 +199,9 @@ void ASnakeBase::HandleBeginOverlap(
 	if (Cast<AApple>(OtherActor) != nullptr)
 	{
 		HrumHrum(OtherActor);
-		ASnakeGameModeBase::GetFor(this)->SpawnApple();
+		ASnakeGameModeBase::Get()->SpawnApple();
 		return;
 	}
 
-	ASnakeGameModeBase::GetFor(this)->GameOver(this);
+	ASnakeGameModeBase::Get()->GameOver();
 }

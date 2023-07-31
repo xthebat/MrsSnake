@@ -72,7 +72,7 @@ public:
 	void SetDirection(EMovementDirection Direction);
 	void HrumHrum(AActor* Whom);
 
-	void HandleBeginOverlap(
+	void HandleCollision(
 		ASnakeBaseElement* SnakeElement,
 		UPrimitiveComponent* SnakeComponent,
 		AActor* OtherActor,
