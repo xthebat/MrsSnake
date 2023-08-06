@@ -28,9 +28,19 @@ APlayerController* AMrsSnakeGameModeBase::GetPlayer(int Index)
 	return UGameplayStatics::GetPlayerController(GetWorld(), Index);
 }
 
+AHUD* AMrsSnakeGameModeBase::GetHUD(int Index)
+{
+	return GetPlayer(Index)->GetHUD();
+}
+
 AMrsSnakeGameModeBase* AMrsSnakeGameModeBase::Get()
 {
 	return Cast<AMrsSnakeGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
+}
+
+FTimerManager& AMrsSnakeGameModeBase::GetTimerManager()
+{
+	return GetWorld()->GetTimerManager();
 }
 
 void AMrsSnakeGameModeBase::SpawnApple() const
@@ -41,13 +51,17 @@ void AMrsSnakeGameModeBase::SpawnApple() const
 		return;
 	}
 
-	const auto Location = FVector{
-		FMath::FRandRange(-650, 650),
-		FMath::FRandRange(-850, 850),
-		FMath::FRandRange(0, 500),
-	};
-	const auto Rotation = FRotator::ZeroRotator;
-	GetWorld()->SpawnActor<AApple>(AppleClass, Location, Rotation);
+	const auto Apple = GetActorOfClass<AApple>();
+	if (Apple == nullptr)
+	{
+		const auto Location = FVector{
+			FMath::FRandRange(-650, 650),
+			FMath::FRandRange(-850, 850),
+			FMath::FRandRange(0, 0),
+		}.GridSnap(100);
+		const auto Rotation = FRotator::ZeroRotator;
+		GetWorld()->SpawnActor<AApple>(AppleClass, Location, Rotation);
+	}
 }
 
 void AMrsSnakeGameModeBase::GameOver()

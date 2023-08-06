@@ -2,12 +2,13 @@
 
 #pragma once
 
+#include "Item.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Apple.generated.h"
 
 UCLASS()
-class MRSSNAKE_API AApple : public AActor
+class MRSSNAKE_API AApple : public AItem
 {
 	GENERATED_BODY()
 	

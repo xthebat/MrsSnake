@@ -52,7 +52,7 @@ public:
 
 	UFUNCTION()
 	void HandlePlayerVerticalLeft();
-	
+
 	UFUNCTION()
 	void HandlePlayerVerticalRight();
 };
