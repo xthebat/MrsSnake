@@ -4,26 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MrsSnakeBaseElement.generated.h"
+#include "MrsSnakeElement.generated.h"
 
 class AMrsSnakeBase;
 
 UCLASS()
-class MRSSNAKE_API AMrsSnakeBaseElement : public AActor
+class MRSSNAKE_API AMrsSnakeElement : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AMrsSnakeBaseElement();
+	AMrsSnakeElement();
 
 	void Initialize(AMrsSnakeBase* Parent, UStaticMesh* Mesh, ECollisionEnabled::Type CollisionType);
 
 	UStaticMeshComponent* GetComponent() const;
 
 	UStaticMesh* GetStaticMesh() const;
-
-	FVector GetXOffset(float Offset = 0.0f) const;
 
 protected:
 	// Called when the game starts or when spawned

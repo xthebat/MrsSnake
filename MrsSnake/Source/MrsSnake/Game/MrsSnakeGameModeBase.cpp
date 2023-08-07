@@ -2,9 +2,8 @@
 
 
 #include "MrsSnakeGameModeBase.h"
-
-#include "Apple.h"
 #include "Kismet/GameplayStatics.h"
+#include "MrsSnake/Misc/ItemBase.h"
 
 
 void AMrsSnakeGameModeBase::Tick(float DeltaSeconds)
@@ -51,7 +50,7 @@ void AMrsSnakeGameModeBase::SpawnApple() const
 		return;
 	}
 
-	const auto Apple = GetActorOfClass<AApple>();
+	const auto Apple = GetActorOfClass<AItemBase>();
 	if (Apple == nullptr)
 	{
 		const auto Location = FVector{
@@ -60,7 +59,8 @@ void AMrsSnakeGameModeBase::SpawnApple() const
 			FMath::FRandRange(0, 0),
 		}.GridSnap(100);
 		const auto Rotation = FRotator::ZeroRotator;
-		GetWorld()->SpawnActor<AApple>(AppleClass, Location, Rotation);
+		UE_LOG(LogTemp, Display, TEXT("Spawn Apple at %s"), *Location.ToString());
+		GetWorld()->SpawnActor<AItemBase>(AppleClass, Location, Rotation);
 	}
 }
 

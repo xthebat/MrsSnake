@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MrsSnakePlayerPawn.h"
 #include "GameFramework/Actor.h"
+#include "MrsSnake/Game/MrsSnakePlayerPawnBase.h"
 #include "MrsSnakeBase.generated.h"
 
-class AMrsSnakeBaseElement;
+class AMrsSnakeElement;
 
 UCLASS()
 class MRSSNAKE_API AMrsSnakeBase : public AActor
@@ -22,7 +22,7 @@ public:
 	int SnakeInitialSize = 5;
 
 	UPROPERTY(EditAnywhere)
-	float SnakeElementSpace = 10.0;
+	float SnakeElementSpace = 100.0;
 
 	UPROPERTY(EditAnywhere)
 	float SnakeTickTime = 1.0f;
@@ -32,9 +32,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMesh* BodyStaticMesh = {};
-
-	// UPROPERTY(EditDefaultsOnly)
-	// TSubclassOf<ASnakeBaseElement> SnakeBaseElementClass;
 
 protected:
 	// Called when the game starts or when spawned
@@ -47,15 +44,14 @@ protected:
 
 	static FRotator Direction2Rotator(EMovementDirection Direction);
 
-	static AMrsSnakeBaseElement* Component2Element(const UChildActorComponent* Component);
+	static AMrsSnakeElement* Component2Element(const UChildActorComponent* Component);
 
 	ECollisionEnabled::Type ToggleCollision(ECollisionEnabled::Type NewCollisionType);
 
-	UChildActorComponent* GrowSnake();
-
 	UChildActorComponent* GetHead() const;
-	UChildActorComponent* GetNeck() const;
 	UChildActorComponent* GetTail() const;
+
+	UChildActorComponent* GrowSnake();
 
 	void MoveSnake(EMovementDirection Direction);
 
@@ -66,6 +62,7 @@ protected:
 	EMovementDirection PendingDirection = EMovementDirection::Forward;
 
 public:
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -73,7 +70,7 @@ public:
 	void HrumHrum(AActor* Whom);
 
 	void HandleCollision(
-		AMrsSnakeBaseElement* SnakeElement,
+		AMrsSnakeElement* SnakeElement,
 		UPrimitiveComponent* SnakeComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent);

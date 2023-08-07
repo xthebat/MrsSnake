@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Item.generated.h"
+#include "ItemBase.generated.h"
 
 class UWidgetComponent;
 
 UCLASS()
-class MRSSNAKE_API AItem : public AActor
+class MRSSNAKE_API AItemBase : public AActor
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this actor's properties
-	AItem();
+	AItemBase();
 
 	UPROPERTY(EditDefaultsOnly)
 	float SelfDestructionTime = 30.0f;

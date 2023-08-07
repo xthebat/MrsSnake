@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "MrsSnakePlayerPawn.generated.h"
+#include "MrsSnakePlayerPawnBase.generated.h"
 
 class UCameraComponent;
 class AMrsSnakeBase;
@@ -22,13 +22,13 @@ enum class EMovementDirection
 };
 
 UCLASS()
-class MRSSNAKE_API AMrsSnakePlayerPawn : public APawn
+class MRSSNAKE_API AMrsSnakePlayerPawnBase : public APawn
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this pawn's properties
-	AMrsSnakePlayerPawn();
+	AMrsSnakePlayerPawnBase();
 
 protected:
 	// Called when the game starts or when spawned

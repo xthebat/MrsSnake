@@ -1,20 +1,19 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Item.h"
-
-#include "ItemInfo.h"
+#include "ItemBase.h"
 #include "Components/WidgetComponent.h"
-#include "MrsSnakeGameModeBase.h"
+#include "MrsSnake/Game/MrsSnakeGameModeBase.h"
+#include "MrsSnake/Widget/ItemInfo.h"
 
 // Sets default values
-AItem::AItem()
+AItemBase::AItemBase()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-float AItem::GetSelfDestructionTick() const
+float AItemBase::GetSelfDestructionTick() const
 {
 	if (SelfDestructionRemain >= 1.0f)
 		return 1.0f;
@@ -23,7 +22,7 @@ float AItem::GetSelfDestructionTick() const
 }
 
 // Called when the game starts or when spawned
-void AItem::BeginPlay()
+void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -45,12 +44,12 @@ void AItem::BeginPlay()
 	GameMode->GetTimerManager().SetTimer(
 		SelfDestructionHandle,
 		this,
-		&AItem::OnSelfDestructionTick,
+		&AItemBase::OnSelfDestructionTick,
 		SelfDestructionTick,
 		false);
 }
 
-void AItem::OnSelfDestructionTick()
+void AItemBase::OnSelfDestructionTick()
 {
 	SelfDestructionRemain -= SelfDestructionTick;
 
@@ -74,7 +73,7 @@ void AItem::OnSelfDestructionTick()
 	GameMode->GetTimerManager().SetTimer(
 		SelfDestructionHandle,
 		this,
-		&AItem::OnSelfDestructionTick,
+		&AItemBase::OnSelfDestructionTick,
 		SelfDestructionTick,
 		false);
 }

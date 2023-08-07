@@ -2,10 +2,9 @@
 
 
 #include "MrsSnakeBase.h"
-
-#include "MrsSnakeBaseElement.h"
-#include "MrsSnakeGameModeBase.h"
-#include "Apple.h"
+#include "MrsSnakeElement.h"
+#include "MrsSnake/Components/BehaviourComponent.h"
+#include "MrsSnake/Game/MrsSnakePlayerPawnBase.h"
 
 // Sets default values
 AMrsSnakeBase::AMrsSnakeBase()
@@ -47,9 +46,9 @@ FRotator AMrsSnakeBase::Direction2Rotator(EMovementDirection Direction)
 	return Rotator;
 }
 
-AMrsSnakeBaseElement* AMrsSnakeBase::Component2Element(const UChildActorComponent* Component)
+AMrsSnakeElement* AMrsSnakeBase::Component2Element(const UChildActorComponent* Component)
 {
-	return Cast<AMrsSnakeBaseElement>(Component->GetChildActor());
+	return Cast<AMrsSnakeElement>(Component->GetChildActor());
 }
 
 ECollisionEnabled::Type AMrsSnakeBase::ToggleCollision(ECollisionEnabled::Type NewCollisionType)
@@ -74,7 +73,7 @@ UChildActorComponent* AMrsSnakeBase::GrowSnake()
 	const auto Component = NewObject<UChildActorComponent>(this);
 	Component->RegisterComponent();
 
-	Component->SetChildActorClass(AMrsSnakeBaseElement::StaticClass());
+	Component->SetChildActorClass(AMrsSnakeElement::StaticClass());
 	Component->CreateChildActor();
 
 	const auto Mesh = IsHead ? HeadStaticMesh : BodyStaticMesh;
@@ -85,12 +84,7 @@ UChildActorComponent* AMrsSnakeBase::GrowSnake()
 
 	if (!IsHead)
 	{
-		const auto TailActor = Component2Element(GetTail());
-		const auto GrownActor = Component2Element(Component);
-
-		const auto Offset = GrownActor->GetXOffset(SnakeElementSpace) +
-			TailActor->GetXOffset(SnakeElementSpace);
-
+		const auto Offset = FVector{SnakeElementSpace, 0.0f, 0.0f};
 		Location = GetTail()->GetRelativeLocation() - Offset;
 	}
 
@@ -104,11 +98,6 @@ UChildActorComponent* AMrsSnakeBase::GrowSnake()
 UChildActorComponent* AMrsSnakeBase::GetHead() const
 {
 	return SnakeComponents[0];
-}
-
-UChildActorComponent* AMrsSnakeBase::GetNeck() const
-{
-	return SnakeComponents[1];
 }
 
 UChildActorComponent* AMrsSnakeBase::GetTail() const
@@ -143,8 +132,7 @@ void AMrsSnakeBase::MoveSnake(EMovementDirection Direction)
 
 	GetHead()->AddLocalRotation(Rotator);
 
-	const auto Offset = Component2Element(GetHead())->GetXOffset(SnakeElementSpace) +
-		Component2Element(GetNeck())->GetXOffset(SnakeElementSpace);
+	const auto Offset = FVector{SnakeElementSpace, 0.0f, 0.0f};
 
 	GetHead()->AddLocalOffset(Offset);
 
@@ -181,7 +169,7 @@ void AMrsSnakeBase::HrumHrum(AActor* Whom)
 }
 
 void AMrsSnakeBase::HandleCollision(
-	AMrsSnakeBaseElement* SnakeElement,
+	AMrsSnakeElement* SnakeElement,
 	UPrimitiveComponent* SnakeComponent,
 	AActor* OtherActor,
 	UPrimitiveComponent* OtherComponent)
@@ -189,15 +177,17 @@ void AMrsSnakeBase::HandleCollision(
 	if (SnakeElement != Component2Element(GetHead()))
 		return;
 
-	if (OtherActor == Component2Element(GetNeck()))
-		return;
+	const auto Component = OtherActor->GetComponentByClass(UBehaviourComponent::StaticClass());
+	const auto BehaviourComponent = Cast<UBehaviourComponent>(Component);
+	if (BehaviourComponent != nullptr)
+		BehaviourComponent->Affect(this);
 
-	if (Cast<AApple>(OtherActor) != nullptr)
-	{
-		HrumHrum(OtherActor);
-		AMrsSnakeGameModeBase::Get()->SpawnApple();
-		return;
-	}
+	// if (Cast<AApple>(OtherActor) != nullptr)
+	// {
+		// HrumHrum(OtherActor);
+		// AMrsSnakeGameModeBase::Get()->SpawnApple();
+		// return;
+	// }
 
-	AMrsSnakeGameModeBase::Get()->GameOver();
+	// AMrsSnakeGameModeBase::Get()->GameOver();
 }
