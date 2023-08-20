@@ -2,6 +2,8 @@
 
 
 #include "MrsSnakePlayerPawnBase.h"
+
+#include "MrsSnakeGameModeBase.h"
 #include "MrsSnake/Character/MrsSnakeBase.h"
 
 
@@ -10,7 +12,6 @@ AMrsSnakePlayerPawnBase::AMrsSnakePlayerPawnBase()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	// CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCamera"));
 }
 
 // Called when the game starts or when spawned
@@ -34,6 +35,19 @@ void AMrsSnakePlayerPawnBase::SetupPlayerInputComponent(UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("Down", IE_Pressed, this, &AMrsSnakePlayerPawnBase::HandlePlayerVerticalDown);
 	PlayerInputComponent->BindAction("Left", IE_Pressed, this, &AMrsSnakePlayerPawnBase::HandlePlayerVerticalLeft);
 	PlayerInputComponent->BindAction("Right", IE_Pressed, this, &AMrsSnakePlayerPawnBase::HandlePlayerVerticalRight);
+
+	PlayerInputComponent->BindAction("Start", IE_Pressed, this, &AMrsSnakePlayerPawnBase::HandleSpace);
+	PlayerInputComponent->BindAction("Exit", IE_Pressed, this, &AMrsSnakePlayerPawnBase::HandleEscape);
+}
+
+void AMrsSnakePlayerPawnBase::HandleSpace()
+{
+	AMrsSnakeGameModeBase::Get()->StartGame();
+}
+
+void AMrsSnakePlayerPawnBase::HandleEscape()
+{
+	AMrsSnakeGameModeBase::Get()->QuitGame();
 }
 
 void AMrsSnakePlayerPawnBase::HandlePlayerVerticalUp()

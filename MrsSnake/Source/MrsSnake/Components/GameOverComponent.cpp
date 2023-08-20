@@ -2,6 +2,8 @@
 
 
 #include "GameOverComponent.h"
+
+#include "MrsSnake/Character/MrsSnakeBase.h"
 #include "MrsSnake/Game/MrsSnakeGameModeBase.h"
 
 
@@ -15,6 +17,5 @@ UGameOverComponent::UGameOverComponent()
 
 void UGameOverComponent::Affect(AMrsSnakeBase* Snake) const
 {
-	Super::Affect(Snake);
-	AMrsSnakeGameModeBase::Get()->GameOver();
+	Snake->Kill();
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MrsSnake/Game/MrsSnakePlayerPawnBase.h"
+#include "MrsSnake/Widget/MrsSnakeInfo.h"
 #include "MrsSnakeBase.generated.h"
 
 class AMrsSnakeElement;
@@ -18,14 +19,25 @@ public:
 	// Sets default values for this actor's properties
 	AMrsSnakeBase();
 
-	UPROPERTY(EditAnywhere)
-	int SnakeInitialSize = 5;
+	void RequestGrow();
 
-	UPROPERTY(EditAnywhere)
-	float SnakeElementSpace = 100.0;
+	void IncreaseSpeed(float Percent);
+	void IncreaseLife(float Delta);
 
-	UPROPERTY(EditAnywhere)
-	float SnakeTickTime = 1.0f;
+	float GetElementSpace() const { return ElementSpace; }
+	float GetLifeTimeStart() const { return LifeTimeStart; }
+	float GetLifeTimeRemain() const { return LifeTimeRemain; }
+	void ReleaseSnake();
+	void Kill() { IsDiePending = true; }
+
+protected:
+	virtual void BeginPlay() override;
+
+	void LifeTimerTick();
+
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void Destroyed() override;
 
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMesh* HeadStaticMesh = {};
@@ -33,11 +45,27 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMesh* BodyStaticMesh = {};
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere)
+	int InitialSize = 3;
 
-	virtual void OnConstruction(const FTransform& Transform) override;
+	UPROPERTY(EditAnywhere)
+	float ElementSpace = 100.0;
+
+	UPROPERTY(EditAnywhere)
+	float BeginTickInterval = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float MinimalTickInterval = 0.005f;
+
+	FTimerHandle LifeTimerHandle;
+
+	UPROPERTY(EditDefaultsOnly)
+	float LifeTimeStart = 60.0f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float LifeTimeTick = 1.0f;
+
+	float LifeTimeRemain = LifeTimeStart;
 
 	UPROPERTY()
 	TArray<UChildActorComponent*> SnakeComponents = {};
@@ -48,30 +76,34 @@ protected:
 
 	ECollisionEnabled::Type ToggleCollision(ECollisionEnabled::Type NewCollisionType);
 
-	UChildActorComponent* GetHead() const;
-	UChildActorComponent* GetTail() const;
-
+	UFUNCTION()
 	UChildActorComponent* GrowSnake();
 
-	void MoveSnake(EMovementDirection Direction);
+	void MoveSnake();
 
 	bool IsGrowPending = false;
 
+	bool IsDiePending = false;
+
 	ECollisionEnabled::Type CollisionState = ECollisionEnabled::QueryOnly;
 
-	EMovementDirection PendingDirection = EMovementDirection::Forward;
+	EMovementDirection CurrentDirection = {};
+	EMovementDirection PendingDirection = {};
 
 public:
+	UChildActorComponent* GetHead() const;
+	UChildActorComponent* GetTail() const;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetDirection(EMovementDirection Direction);
-	void HrumHrum(AActor* Whom);
+	void SetDirection(EMovementDirection NewDirection);
 
 	void HandleCollision(
 		AMrsSnakeElement* SnakeElement,
 		UPrimitiveComponent* SnakeComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComponent);
+
+	bool IsSnakeValid() const;
 };

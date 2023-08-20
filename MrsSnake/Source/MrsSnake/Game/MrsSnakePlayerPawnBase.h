@@ -12,13 +12,11 @@ class AMrsSnakeBase;
 UENUM()
 enum class EMovementDirection
 {
-	Up,
-	Down,
+	Up = 0,
+	Left = 1,
 
-	Left,
-	Right,
-
-	Forward
+	Down = 2,
+	Right = 3,
 };
 
 UCLASS()
@@ -43,6 +41,12 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION()
+	void HandleSpace();
+
+	UFUNCTION()
+	void HandleEscape();
 
 	UFUNCTION()
 	void HandlePlayerVerticalUp();

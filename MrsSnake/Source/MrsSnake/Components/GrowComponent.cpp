@@ -16,8 +16,6 @@ UGrowComponent::UGrowComponent()
 
 void UGrowComponent::Affect(AMrsSnakeBase* Snake) const
 {
-	Super::Affect(Snake);
-	Snake->HrumHrum(GetOwner());
-	AMrsSnakeGameModeBase::Get()->SpawnApple();
+	Snake->RequestGrow();
 }
 

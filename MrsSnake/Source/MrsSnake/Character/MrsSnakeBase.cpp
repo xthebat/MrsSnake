@@ -4,7 +4,9 @@
 #include "MrsSnakeBase.h"
 #include "MrsSnakeElement.h"
 #include "MrsSnake/Components/BehaviourComponent.h"
+#include "MrsSnake/Game/MrsSnakeGameModeBase.h"
 #include "MrsSnake/Game/MrsSnakePlayerPawnBase.h"
+#include "MrsSnake/Misc/ItemBase.h"
 
 // Sets default values
 AMrsSnakeBase::AMrsSnakeBase()
@@ -13,12 +15,49 @@ AMrsSnakeBase::AMrsSnakeBase()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
+void AMrsSnakeBase::RequestGrow() { IsGrowPending = true; }
+
+void AMrsSnakeBase::IncreaseSpeed(float Percent)
+{
+	const auto CurrentTickInterval = GetActorTickInterval();
+	const auto NewTickInterval = FMath::Max(CurrentTickInterval * (1.0f - Percent), MinimalTickInterval);
+	UE_LOG(LogTemp, Log, TEXT("NewTickInterval = %f"), NewTickInterval);
+	SetActorTickInterval(NewTickInterval);
+}
+
+void AMrsSnakeBase::IncreaseLife(float Delta)
+{
+	LifeTimeRemain += Delta;
+}
+
+void AMrsSnakeBase::ReleaseSnake()
+{
+	SetActorTickInterval(BeginTickInterval);
+	SetActorTickEnabled(true);
+
+	const auto* GameMode = AMrsSnakeGameModeBase::Get();
+	GameMode->GetTimerManager().SetTimer(
+		LifeTimerHandle,
+		this,
+		&AMrsSnakeBase::LifeTimerTick,
+		LifeTimeTick,
+		true);
+}
+
 void AMrsSnakeBase::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorTickInterval(SnakeTickTime);
-	SetActorTickEnabled(SnakeComponents.Num() > 1); // Disable ticks if snake is invalid
+	SetActorTickEnabled(false);
+}
+
+void AMrsSnakeBase::LifeTimerTick()
+{
+	LifeTimeRemain -= LifeTimeTick;
+}
+
+bool AMrsSnakeBase::IsSnakeValid() const
+{
+	return SnakeComponents.Num() > 1;
 }
 
 FRotator AMrsSnakeBase::Direction2Rotator(EMovementDirection Direction)
@@ -28,18 +67,16 @@ FRotator AMrsSnakeBase::Direction2Rotator(EMovementDirection Direction)
 	switch (Direction)
 	{
 	case EMovementDirection::Up:
-		Rotator.Pitch += 90.0f;
+		Rotator.Yaw = 0.0f;
 		break;
 	case EMovementDirection::Down:
-		Rotator.Pitch -= 90.0f;
+		Rotator.Yaw = 180.0f;
 		break;
 	case EMovementDirection::Left:
-		Rotator.Yaw -= 90.0f;
+		Rotator.Yaw = -90.0f;
 		break;
 	case EMovementDirection::Right:
-		Rotator.Yaw += 90.0f;
-		break;
-	case EMovementDirection::Forward:
+		Rotator.Yaw = 90.0f;
 		break;
 	}
 
@@ -84,7 +121,7 @@ UChildActorComponent* AMrsSnakeBase::GrowSnake()
 
 	if (!IsHead)
 	{
-		const auto Offset = FVector{SnakeElementSpace, 0.0f, 0.0f};
+		const auto Offset = FVector{ElementSpace, 0.0f, 0.0f};
 		Location = GetTail()->GetRelativeLocation() - Offset;
 	}
 
@@ -112,17 +149,23 @@ void AMrsSnakeBase::OnConstruction(const FTransform& Transform)
 	if (HeadStaticMesh == nullptr || BodyStaticMesh == nullptr)
 		return;
 
-	SnakeComponents.Empty(SnakeInitialSize);
+	SnakeComponents.Empty(InitialSize);
 
-	while (SnakeComponents.Num() < SnakeInitialSize)
+	while (SnakeComponents.Num() < InitialSize)
 		GrowSnake()->CreationMethod = EComponentCreationMethod::UserConstructionScript;
 }
 
-void AMrsSnakeBase::MoveSnake(EMovementDirection Direction)
+void AMrsSnakeBase::Destroyed()
+{
+	Super::Destroyed();
+
+	const auto* GameMode = AMrsSnakeGameModeBase::Get();
+	GameMode->GetTimerManager().ClearTimer(LifeTimerHandle);
+}
+
+void AMrsSnakeBase::MoveSnake()
 {
 	const auto PreviousCollisionState = ToggleCollision(ECollisionEnabled::NoCollision);
-
-	const auto Rotator = Direction2Rotator(Direction);
 
 	for (int i = SnakeComponents.Num() - 1; i > 0; i--)
 	{
@@ -130,13 +173,17 @@ void AMrsSnakeBase::MoveSnake(EMovementDirection Direction)
 		SnakeComponents[i]->SetRelativeTransform(PreviousTransform);
 	}
 
-	GetHead()->AddLocalRotation(Rotator);
+	const auto Rotator = Direction2Rotator(PendingDirection);
+	CurrentDirection = PendingDirection;
 
-	const auto Offset = FVector{SnakeElementSpace, 0.0f, 0.0f};
+	GetHead()->SetWorldRotation(Rotator);
+
+	const auto Offset = FVector{ElementSpace, 0.0f, 0.0f};
 
 	GetHead()->AddLocalOffset(Offset);
 
-	PendingDirection = EMovementDirection::Forward;
+	for (const auto It : SnakeComponents)
+		It->SetWorldLocation(It->GetComponentLocation().GridSnap(ElementSpace / 2.0f));
 
 	ToggleCollision(PreviousCollisionState);
 }
@@ -154,18 +201,16 @@ void AMrsSnakeBase::Tick(float DeltaTime)
 		GrowSnake();
 	}
 
-	MoveSnake(PendingDirection);
+	MoveSnake();
+
+	if (IsDiePending)
+		Destroy();
 }
 
-void AMrsSnakeBase::SetDirection(EMovementDirection Direction)
+void AMrsSnakeBase::SetDirection(EMovementDirection NewDirection)
 {
-	PendingDirection = Direction;
-}
-
-void AMrsSnakeBase::HrumHrum(AActor* Whom)
-{
-	IsGrowPending = true;
-	Whom->Destroy();
+	if (abs(static_cast<int>(CurrentDirection) - static_cast<int>(NewDirection)) != 2)
+		PendingDirection = NewDirection;
 }
 
 void AMrsSnakeBase::HandleCollision(
@@ -177,17 +222,9 @@ void AMrsSnakeBase::HandleCollision(
 	if (SnakeElement != Component2Element(GetHead()))
 		return;
 
-	const auto Component = OtherActor->GetComponentByClass(UBehaviourComponent::StaticClass());
-	const auto BehaviourComponent = Cast<UBehaviourComponent>(Component);
-	if (BehaviourComponent != nullptr)
-		BehaviourComponent->Affect(this);
+	TArray<UBehaviourComponent*> BehaviourComponents = {};
+	OtherActor->GetComponents(BehaviourComponents);
 
-	// if (Cast<AApple>(OtherActor) != nullptr)
-	// {
-		// HrumHrum(OtherActor);
-		// AMrsSnakeGameModeBase::Get()->SpawnApple();
-		// return;
-	// }
-
-	// AMrsSnakeGameModeBase::Get()->GameOver();
+	for (const auto It : BehaviourComponents)
+		It->Affect(this);
 }
