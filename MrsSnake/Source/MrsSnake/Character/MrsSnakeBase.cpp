@@ -28,6 +28,8 @@ void AMrsSnakeBase::IncreaseSpeed(float Percent)
 void AMrsSnakeBase::IncreaseLife(float Delta)
 {
 	LifeTimeRemain += Delta;
+	if (LifeTimeRemain > LifeTimeStart)
+		LifeTimeRemain = LifeTimeStart;
 }
 
 void AMrsSnakeBase::ReleaseSnake()
