@@ -6,8 +6,10 @@
 #include "Components/ActorComponent.h"
 #include "BehaviourComponent.generated.h"
 
-
+class AMrsSnakeGameModeBase;
 class AMrsSnakeBase;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FConfigureBehaviourComponent);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MRSSNAKE_API UBehaviourComponent : public UActorComponent
@@ -19,4 +21,9 @@ public:
 	UBehaviourComponent();
 
 	virtual void Affect(AMrsSnakeBase* Snake) const;
+
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintAssignable)
+	FConfigureBehaviourComponent ConfigureBehaviourComponent;
 };

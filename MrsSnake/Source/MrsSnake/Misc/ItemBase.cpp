@@ -109,6 +109,11 @@ void AItemBase::OnSelfDestructionTick()
 		false);
 }
 
+AMrsSnakeGameModeBase* AItemBase::GetSnakeGameMode()
+{
+	return AMrsSnakeGameModeBase::Get();
+}
+
 #if WITH_EDITOR
 void AItemBase::PreEditChange(FProperty* PropertyAboutToChange)
 {

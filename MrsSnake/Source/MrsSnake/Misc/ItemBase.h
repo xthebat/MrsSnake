@@ -59,4 +59,8 @@ protected:
 
 	UFUNCTION()
 	void OnSelfDestructionTick();
+
+public:
+	UFUNCTION(BlueprintCallable)
+	static AMrsSnakeGameModeBase* GetSnakeGameMode();
 };

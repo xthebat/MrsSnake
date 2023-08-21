@@ -13,8 +13,6 @@ class UMrsSnakeInfoBase;
 class AItemBase;
 class AApple;
 
-
-
 USTRUCT(BlueprintType)
 struct FItemDescription
 {
@@ -39,7 +37,7 @@ struct FItemDescription
 	TSubclassOf<UObject> SpawnerClass;
 
 	UPROPERTY(EditAnywhere)
-	TMap<FString, FString> SpawnerParameters;  // Why no FVariant .... ???
+	TMap<FString, FString> SpawnerParameters; // Why no FVariant .... ???
 };
 
 /**
@@ -135,4 +133,15 @@ protected:
 
 	UFUNCTION()
 	void OnSceneActorDestroyed(AActor* Actor);
+
+	// Configurable parameters functions
+
+	int ChangeTickPercent = 1;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	int GetChangeTickPercent() const { return ChangeTickPercent; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetChangeTickPercent(int NewChangeTickPercent) { ChangeTickPercent = NewChangeTickPercent; }
 };

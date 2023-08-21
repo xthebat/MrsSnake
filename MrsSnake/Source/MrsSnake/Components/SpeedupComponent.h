@@ -12,12 +12,12 @@ class MRSSNAKE_API USpeedupComponent : public UBehaviourComponent
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(EditAnywhere)
-	float ChangeTickInterval = 0.01f;
-
-	UPROPERTY(EditAnywhere)
-	float ChangeLifeRemain = 5.0f;
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChangeTickPercent = 0.01f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ChangeLifeRemain = 5.0f;
+
 	virtual void Affect(AMrsSnakeBase* Snake) const override;
 };

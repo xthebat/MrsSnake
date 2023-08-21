@@ -7,6 +7,6 @@
 
 void USpeedupComponent::Affect(AMrsSnakeBase* Snake) const
 {
-	Snake->IncreaseSpeed(ChangeTickInterval);
+	Snake->IncreaseSpeed(ChangeTickPercent);
 	Snake->IncreaseLife(ChangeLifeRemain);
 }

@@ -2,7 +2,7 @@
 
 
 #include "BehaviourComponent.h"
-
+#include "MrsSnake/Game/MrsSnakeGameModeBase.h"
 
 // Sets default values for this component's properties
 UBehaviourComponent::UBehaviourComponent()
@@ -16,3 +16,10 @@ void UBehaviourComponent::Affect(AMrsSnakeBase* Snake) const
 {
 
 }
+
+void UBehaviourComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	ConfigureBehaviourComponent.Broadcast();
+}
+
