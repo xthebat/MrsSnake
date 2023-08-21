@@ -23,14 +23,19 @@ public:
 
 	void IncreaseSpeed(float Percent);
 	void IncreaseLife(float Delta);
+	void IncreaseScore(int Amount);
 
 	float GetElementSpace() const { return ElementSpace; }
 	float GetLifeTimeStart() const { return LifeTimeStart; }
 	float GetLifeTimeRemain() const { return LifeTimeRemain; }
+	int GetScore() const { return Score; }
+
 	void ReleaseSnake();
 	void Kill() { IsDiePending = true; }
 
 protected:
+	constexpr static int MaxScore = 2000;
+
 	virtual void BeginPlay() override;
 
 	void LifeTimerTick();
@@ -66,6 +71,8 @@ protected:
 	float LifeTimeTick = 1.0f;
 
 	float LifeTimeRemain = LifeTimeStart;
+
+	int Score = 0;
 
 	UPROPERTY()
 	TArray<UChildActorComponent*> SnakeComponents = {};

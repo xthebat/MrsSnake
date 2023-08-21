@@ -32,6 +32,13 @@ void AMrsSnakeBase::IncreaseLife(float Delta)
 		LifeTimeRemain = LifeTimeStart;
 }
 
+void AMrsSnakeBase::IncreaseScore(int Amount)
+{
+	Score += Amount;
+	if (Score > MaxScore)
+		Score = MaxScore;
+}
+
 void AMrsSnakeBase::ReleaseSnake()
 {
 	SetActorTickInterval(BeginTickInterval);

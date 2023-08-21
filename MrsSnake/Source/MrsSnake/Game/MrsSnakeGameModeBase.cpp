@@ -112,6 +112,7 @@ void AMrsSnakeGameModeBase::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	Info->Health = MrsSnake->GetLifeTimeRemain() / MrsSnake->GetLifeTimeStart();
+	Info->Score = MrsSnake->GetScore();
 
 	if (Info->Health == 0)
 		QuitGame();
@@ -252,10 +253,7 @@ void AMrsSnakeGameModeBase::OnSceneActorDestroyed(AActor* Actor)
 	if (Item != nullptr)
 	{
 		if (Item->CanGrowSnake())
-		{
 			GrowItem = nullptr;
-			Info->Score++;
-		}
 		SceneActors.Remove(Actor->GetActorLocation());
 	}
 }

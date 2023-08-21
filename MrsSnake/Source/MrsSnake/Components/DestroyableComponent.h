@@ -13,8 +13,5 @@ class MRSSNAKE_API UDestroyableComponent : public UBehaviourComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
-	UDestroyableComponent();
-
 	virtual void Affect(AMrsSnakeBase* Snake) const override;
 };

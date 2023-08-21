@@ -13,8 +13,5 @@ class MRSSNAKE_API UGameOverComponent : public UBehaviourComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
-	UGameOverComponent();
-
 	virtual void Affect(AMrsSnakeBase* Snake) const override;
 };

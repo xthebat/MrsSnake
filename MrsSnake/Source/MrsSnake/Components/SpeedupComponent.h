@@ -19,8 +19,5 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float ChangeLifeRemain = 5.0f;
 public:
-	// Sets default values for this component's properties
-	USpeedupComponent();
-
 	virtual void Affect(AMrsSnakeBase* Snake) const override;
 };

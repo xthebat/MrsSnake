@@ -13,8 +13,5 @@ class MRSSNAKE_API UGrowComponent : public UBehaviourComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
-	UGrowComponent();
-
 	virtual void Affect(AMrsSnakeBase* Snake) const override;
 };
