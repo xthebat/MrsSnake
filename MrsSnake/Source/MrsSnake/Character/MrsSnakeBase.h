@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MrsSnake/Game/MrsSnakePlayerPawnBase.h"
-#include "MrsSnake/Widget/MrsSnakeInfo.h"
+#include "MrsSnake/Widget/MrsSnakeInfoBase.h"
 #include "MrsSnakeBase.generated.h"
 
 class AMrsSnakeElement;

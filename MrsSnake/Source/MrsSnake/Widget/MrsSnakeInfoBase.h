@@ -4,22 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MrsSnakeInfo.generated.h"
+#include "MrsSnakeInfoBase.generated.h"
 
 /**
  *
  */
 UCLASS()
-class MRSSNAKE_API UMrsSnakeInfo : public UUserWidget
+class MRSSNAKE_API UMrsSnakeInfoBase : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(BlueprintReadOnly)
-	int Score = {};
+	int Score = 0;
 
 	UPROPERTY(BlueprintReadOnly)
-	float Health = {};
+	float Health = 1.0;
 
 	UPROPERTY(BlueprintReadOnly)
 	FString Message = {};

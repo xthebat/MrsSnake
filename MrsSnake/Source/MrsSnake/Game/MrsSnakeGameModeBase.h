@@ -9,7 +9,7 @@
 #include "MrsSnakeGameModeBase.generated.h"
 
 class ISpawner;
-class UMrsSnakeInfo;
+class UMrsSnakeInfoBase;
 class AItemBase;
 class AApple;
 
@@ -80,8 +80,10 @@ public:
 		return reinterpret_cast<TArray<Cls*>&>(Actors);
 	}
 
+	UFUNCTION(BlueprintCallable)
 	static void QuitGame();
 
+	UFUNCTION(BlueprintCallable)
 	void StartGame();
 
 protected:
@@ -94,6 +96,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	int NearestSpawnLocation = 3;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UMrsSnakeInfoBase> MrsSnakeInfoClass;
+
 	UPROPERTY()
 	AMrsSnakeBase* MrsSnake = nullptr;
 
@@ -101,7 +106,7 @@ protected:
 	AItemBase* Floor = nullptr;
 
 	UPROPERTY()
-	UMrsSnakeInfo* Info = nullptr;
+	UMrsSnakeInfoBase* Info = nullptr;
 
 	FVector BottomLeft = {};
 	FVector TopRight = {};

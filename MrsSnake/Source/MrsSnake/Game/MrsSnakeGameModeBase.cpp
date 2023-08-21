@@ -9,7 +9,7 @@
 #include "MrsSnake/Character/MrsSnakeBase.h"
 #include "MrsSnake/Misc/ItemBase.h"
 #include "MrsSnake/Spawner/Spawner.h"
-#include "MrsSnake/Widget/MrsSnakeInfo.h"
+#include "MrsSnake/Widget/MrsSnakeInfoBase.h"
 
 
 AMrsSnakeGameModeBase::AMrsSnakeGameModeBase()
@@ -21,6 +21,12 @@ void AMrsSnakeGameModeBase::StartPlay()
 {
 	Super::StartPlay();
 	SetActorTickEnabled(false);
+
+	if (!IsValid(MrsSnakeInfoClass))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MrsSnakeInfoClass not set!"));
+		return;
+	}
 
 	AppleDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.IsGrowItem; });
 	if (AppleDescription == nullptr)
@@ -69,22 +75,6 @@ void AMrsSnakeGameModeBase::StartPlay()
 	       *TopRight.ToString(),
 	       Grid);
 
-	const auto HUD = GetHUD(0);
-	const auto WidgetComponent = Cast<UWidgetComponent>(HUD->GetComponentByClass(UWidgetComponent::StaticClass()));
-	if (WidgetComponent == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MrsSnake WidgetComponent in HUD not found on level!"));
-		return;
-	}
-
-	Info = Cast<UMrsSnakeInfo>(WidgetComponent->GetUserWidgetObject());
-	if (Info == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MrsSnakeInfo not found in: %s %p"), *WidgetComponent->GetName(),
-		       WidgetComponent->GetUserWidgetObject());
-		return;
-	}
-
 	for (float X = Origin.X; X < BoxExtent.X; X += Grid)
 	{
 		DoSpawnItem(BlockDescription->ItemClass, {X, BoxExtent.Y, 0.0f});
@@ -100,9 +90,6 @@ void AMrsSnakeGameModeBase::StartPlay()
 		DoSpawnItem(BlockDescription->ItemClass, {-BoxExtent.X, Y, 0.0f});
 		DoSpawnItem(BlockDescription->ItemClass, {-BoxExtent.X, -Y, 0.0f});
 	}
-
-	Info->Health = 1.0;
-	Info->Message = "Press 'Space' to start the game";
 
 	CanEverStart = true;
 }
@@ -226,7 +213,7 @@ bool AMrsSnakeGameModeBase::SpawnItem(const FItemDescription* ItemDescription)
 		auto Locations = Cast<ISpawner>(Spawner)->Execute_GetLocations(
 			Spawner, ItemDescription->SpawnerParameters, BottomLeft, TopRight, Grid);
 
-		for (auto &It : Locations)
+		for (auto& It : Locations)
 			It = It.GridSnap(Grid);
 
 		if (Locations.FindByPredicate([this](const auto It) { return !CanSpawnItem(It); }))
@@ -279,7 +266,8 @@ void AMrsSnakeGameModeBase::StartGame()
 
 	IsGameStarted = true;
 
-	Info->Message = "";
+	Info = CreateWidget<UMrsSnakeInfoBase>(GetMyWorld(), MrsSnakeInfoClass);
+	Info->AddToViewport();
 
 	SetActorTickEnabled(true);
 	SetActorTickInterval(0.5f);
