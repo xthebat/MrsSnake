@@ -41,6 +41,8 @@ void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 
+	ConfigureItem();
+
 	if (!IsSelfDestructible || SelfDestructionTime < 0)
 		return;
 
@@ -112,6 +114,11 @@ void AItemBase::OnSelfDestructionTick()
 AMrsSnakeGameModeBase* AItemBase::GetSnakeGameMode()
 {
 	return AMrsSnakeGameModeBase::Get();
+}
+
+void AItemBase::ConfigureItem_Implementation()
+{
+
 }
 
 #if WITH_EDITOR

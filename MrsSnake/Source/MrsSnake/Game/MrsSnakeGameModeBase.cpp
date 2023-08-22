@@ -28,17 +28,24 @@ void AMrsSnakeGameModeBase::StartPlay()
 		return;
 	}
 
-	AppleDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.IsGrowItem; });
+	AppleDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.Type == EItemType::Food; });
 	if (AppleDescription == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AppleDescription not set!"));
 		return;
 	}
 
-	BlockDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.IsBlockItem; });
+	BlockDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.Type == EItemType::Block; });
 	if (BlockDescription == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("BlockDescription not set!"));
+		return;
+	}
+
+	BonusDescription = ItemsDescriptions.FindByPredicate([](const auto It) { return It.Type == EItemType::Bonus; });
+	if (BlockDescription == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BonusDescription not set!"));
 		return;
 	}
 
@@ -109,7 +116,7 @@ void AMrsSnakeGameModeBase::Tick(float DeltaSeconds)
 
 	const auto ToBeSpawn = ItemsDescriptions.FilterByPredicate([](const auto It)
 	{
-		return It.IsEnabled && !It.IsGrowItem;
+		return It.IsEnabled && It.Type != EItemType::Food;
 	});
 
 	for (const auto ItemDescription : ToBeSpawn)
@@ -203,7 +210,7 @@ AActor* AMrsSnakeGameModeBase::DoSpawnItem(const TSubclassOf<AItemBase> ItemClas
 
 bool AMrsSnakeGameModeBase::SpawnItem(const FItemDescription* ItemDescription)
 {
-	if (!ItemDescription->IsGrowItem && FMath::FRandRange(0.0f, 1.0f) > ItemDescription->Chance)
+	if (ItemDescription->Type != EItemType::Food && FMath::FRandRange(0.0f, 1.0f) > ItemDescription->Chance)
 		return false;
 
 	const auto Spawner = NewObject<UObject>(this, ItemDescription->SpawnerClass);
@@ -265,6 +272,17 @@ void AMrsSnakeGameModeBase::StartGame()
 	}
 
 	IsGameStarted = true;
+
+	BonusDescription->Chance = static_cast<float>(OrangeChance) / 100.0f;
+
+	TArray<UWidgetComponent*> WidgetComponents = {};
+	GetHUD(0)->GetComponents(WidgetComponents, true);
+	for (const auto It : WidgetComponents)
+	{
+		UE_LOG(LogTemp, Log, TEXT(".........................................."));
+		It->GetWidget()->RemoveFromViewport();
+		It->DestroyComponent();
+	}
 
 	Info = CreateWidget<UMrsSnakeInfoBase>(GetMyWorld(), MrsSnakeInfoClass);
 	Info->AddToViewport();

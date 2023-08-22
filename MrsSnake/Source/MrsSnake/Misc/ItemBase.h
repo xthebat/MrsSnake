@@ -40,7 +40,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "!IsFloor", EditConditionHides))
 	bool IsRandomizeSelfDestructionTime = false;
 
-	UPROPERTY(EditDefaultsOnly, meta = (EditCondition = "IsSelfDestructible", EditConditionHides))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (EditCondition = "IsSelfDestructible", EditConditionHides))
 	float SelfDestructionTime = -1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
@@ -63,4 +63,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	static AMrsSnakeGameModeBase* GetSnakeGameMode();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ConfigureItem();
+
+	void ConfigureItem_Implementation();
 };

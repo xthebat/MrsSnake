@@ -13,6 +13,15 @@ class UMrsSnakeInfoBase;
 class AItemBase;
 class AApple;
 
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	Generic = 0,
+	Food = 1,
+	Block = 2,
+	Bonus = 3
+};
+
 USTRUCT(BlueprintType)
 struct FItemDescription
 {
@@ -28,10 +37,7 @@ struct FItemDescription
 	bool IsEnabled = true;
 
 	UPROPERTY(EditAnywhere)
-	bool IsGrowItem = false;
-
-	UPROPERTY(EditAnywhere)
-	bool IsBlockItem = false;
+	EItemType Type = EItemType::Generic;
 
 	UPROPERTY(EditAnywhere, meta=(MustImplement="Spawner"))
 	TSubclassOf<UObject> SpawnerClass;
@@ -120,6 +126,8 @@ protected:
 
 	FItemDescription* BlockDescription = nullptr;
 
+	FItemDescription* BonusDescription = nullptr;
+
 	bool IsGameStarted = false;
 
 	bool CanEverStart = false;
@@ -136,12 +144,44 @@ protected:
 
 	// Configurable parameters functions
 
-	int ChangeTickPercent = 1;
+	constexpr static int MaxChangeTickPercent = 100;
+	constexpr static int MinChangeTickPercent = 1;
+
+	constexpr static int MaxAppleLifeTime = 60;
+	constexpr static int MinAppleLifeTime = 10;
+
+	constexpr static int MaxOrangeChance = 100;
+	constexpr static int MinOrangeChance = 1;
+
+	int ChangeTickPercent = 5;
+	int AppleLifeTime = 10;
+	int OrangeChance = 6;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	int GetChangeTickPercent() const { return ChangeTickPercent; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetChangeTickPercent(int NewChangeTickPercent) { ChangeTickPercent = NewChangeTickPercent; }
+	void SetChangeTickPercent(int NewChangeTickPercent)
+	{
+		ChangeTickPercent = FMath::Clamp(NewChangeTickPercent, MinChangeTickPercent, MaxChangeTickPercent);
+	}
+
+	UFUNCTION(BlueprintCallable)
+	int GetAppleLifeTime() const { return AppleLifeTime; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetAppleLifeTime(int NewAppleLifeTime)
+	{
+		AppleLifeTime = FMath::Clamp(NewAppleLifeTime, MinAppleLifeTime, MaxAppleLifeTime);
+	}
+
+	UFUNCTION(BlueprintCallable)
+	int GetOrangeChance() const { return OrangeChance; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetOrangeChance(int NewOrangeChance)
+	{
+		OrangeChance = FMath::Clamp(NewOrangeChance, MinOrangeChance, MaxOrangeChance);
+	}
 };
