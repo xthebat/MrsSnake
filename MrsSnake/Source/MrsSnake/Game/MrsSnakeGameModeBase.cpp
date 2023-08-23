@@ -23,6 +23,8 @@ void AMrsSnakeGameModeBase::StartPlay()
 	Super::StartPlay();
 	SetActorTickEnabled(false);
 
+	GetPlayer()->SetShowMouseCursor(true);
+
 	if (!IsValid(MrsSnakeInfoClass))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MrsSnakeInfoClass not set!"));
@@ -316,6 +318,8 @@ void AMrsSnakeGameModeBase::StartGame()
 	MrsSnake->OnDestroyed.AddDynamic(this, &AMrsSnakeGameModeBase::OnMrsSnakeDie);
 
 	MrsSnake->ReleaseSnake();
+
+	GetPlayer()->SetShowMouseCursor(false);
 
 	if (BackgroundMusic != nullptr)
 	{
