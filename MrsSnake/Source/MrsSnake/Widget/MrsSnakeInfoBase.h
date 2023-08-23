@@ -19,6 +19,9 @@ public:
 	int Score = 0;
 
 	UPROPERTY(BlueprintReadOnly)
+	int TotalLifeTime = 0;
+
+	UPROPERTY(BlueprintReadOnly)
 	float Health = 1.0;
 
 	UPROPERTY(BlueprintReadOnly)

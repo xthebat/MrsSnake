@@ -62,6 +62,7 @@ void AMrsSnakeBase::BeginPlay()
 void AMrsSnakeBase::LifeTimerTick()
 {
 	LifeTimeRemain -= LifeTimeTick;
+	TotalLifeTime += LifeTimeTick;
 }
 
 bool AMrsSnakeBase::IsSnakeValid() const
@@ -168,8 +169,11 @@ void AMrsSnakeBase::Destroyed()
 {
 	Super::Destroyed();
 
-	const auto* GameMode = AMrsSnakeGameModeBase::Get();
-	GameMode->GetTimerManager().ClearTimer(LifeTimerHandle);
+	if (AMrsSnakeGameModeBase::HasWorld())
+	{
+		const auto* GameMode = AMrsSnakeGameModeBase::Get();
+		GameMode->GetTimerManager().ClearTimer(LifeTimerHandle);
+	}
 }
 
 void AMrsSnakeBase::MoveSnake()
@@ -193,6 +197,9 @@ void AMrsSnakeBase::MoveSnake()
 
 	for (const auto It : SnakeComponents)
 		It->SetWorldLocation(It->GetComponentLocation().GridSnap(ElementSpace / 2.0f));
+
+	if (MoveSound != nullptr)
+		UGameplayStatics::PlaySoundAtLocation(this, MoveSound, GetHead()->GetComponentLocation(), MoveSoundVolume);
 
 	ToggleCollision(PreviousCollisionState);
 }

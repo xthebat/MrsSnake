@@ -3,6 +3,7 @@
 
 #include "MrsSnakeGameModeBase.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/HUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -105,6 +106,7 @@ void AMrsSnakeGameModeBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	Info->TotalLifeTime = MrsSnake->GetTotalLifeTime();
 	Info->Health = MrsSnake->GetLifeTimeRemain() / MrsSnake->GetLifeTimeStart();
 	Info->Score = MrsSnake->GetScore();
 
@@ -139,6 +141,11 @@ APlayerController* AMrsSnakeGameModeBase::GetPlayer(int Index)
 AHUD* AMrsSnakeGameModeBase::GetHUD(int Index)
 {
 	return GetPlayer(Index)->GetHUD();
+}
+
+bool AMrsSnakeGameModeBase::HasWorld()
+{
+	return !!GEngine->GameViewport;
 }
 
 AMrsSnakeGameModeBase* AMrsSnakeGameModeBase::Get()
@@ -237,7 +244,9 @@ bool AMrsSnakeGameModeBase::SpawnItem(const FItemDescription* ItemDescription)
 
 void AMrsSnakeGameModeBase::OnMrsSnakeDie(AActor* Actor)
 {
-	Info->Message = "Game Over... Press 'Esc' to exit";
+	Info->Message = "You Died";
+	if (BackgroundMusicComponent != nullptr)
+		BackgroundMusicComponent->FadeOut(2.5f, 0.0f);
 	SetActorTickEnabled(false);
 }
 
@@ -259,6 +268,8 @@ void AMrsSnakeGameModeBase::QuitGame()
 
 void AMrsSnakeGameModeBase::StartGame()
 {
+	UE_LOG(LogTemp, Log, TEXT("Request to start game"));
+
 	if (!CanEverStart)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can't start game ... something wrong with environment"));
@@ -271,6 +282,19 @@ void AMrsSnakeGameModeBase::StartGame()
 		return;
 	}
 
+	UE_LOG(
+		LogTemp,
+		Log,
+		TEXT("Start game with options:\n"
+			"ChangeTickPercent = %d\n"
+			"AppleLifeTime = %d\n"
+			"OrangeChance = %d\n"
+			"BackgroundMusicVolume = %d"),
+		ChangeTickPercent,
+		AppleLifeTime,
+		OrangeChance,
+		BackgroundMusicVolume);
+
 	IsGameStarted = true;
 
 	BonusDescription->Chance = static_cast<float>(OrangeChance) / 100.0f;
@@ -279,7 +303,6 @@ void AMrsSnakeGameModeBase::StartGame()
 	GetHUD(0)->GetComponents(WidgetComponents, true);
 	for (const auto It : WidgetComponents)
 	{
-		UE_LOG(LogTemp, Log, TEXT(".........................................."));
 		It->GetWidget()->RemoveFromViewport();
 		It->DestroyComponent();
 	}
@@ -293,4 +316,12 @@ void AMrsSnakeGameModeBase::StartGame()
 	MrsSnake->OnDestroyed.AddDynamic(this, &AMrsSnakeGameModeBase::OnMrsSnakeDie);
 
 	MrsSnake->ReleaseSnake();
+
+	if (BackgroundMusic != nullptr)
+	{
+		BackgroundMusicComponent = UGameplayStatics::SpawnSound2D(
+			this,
+			BackgroundMusic,
+			static_cast<float>(BackgroundMusicVolume) / 100.0f);
+	}
 }

@@ -64,6 +64,7 @@ public:
 	static UWorld* GetMyWorld();
 	static APlayerController* GetPlayer(int Index = 0);
 	static AHUD* GetHUD(int Index);
+	static bool HasWorld();
 	static AMrsSnakeGameModeBase* Get();
 	static FTimerManager& GetTimerManager();
 
@@ -102,6 +103,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UMrsSnakeInfoBase> MrsSnakeInfoClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* BackgroundMusic = nullptr;
+
+	UPROPERTY()
+	UAudioComponent* BackgroundMusicComponent = nullptr;
 
 	UPROPERTY()
 	AMrsSnakeBase* MrsSnake = nullptr;
@@ -153,35 +160,48 @@ protected:
 	constexpr static int MaxOrangeChance = 100;
 	constexpr static int MinOrangeChance = 1;
 
+	constexpr static int MaxBackgroundMusicVolume = 100;
+	constexpr static int MinBackgroundMusicVolume = 0;
+
 	int ChangeTickPercent = 5;
 	int AppleLifeTime = 10;
 	int OrangeChance = 6;
+	int BackgroundMusicVolume = 10;
 
 public:
 	UFUNCTION(BlueprintCallable)
 	int GetChangeTickPercent() const { return ChangeTickPercent; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetChangeTickPercent(int NewChangeTickPercent)
+	void SetChangeTickPercent(int Value)
 	{
-		ChangeTickPercent = FMath::Clamp(NewChangeTickPercent, MinChangeTickPercent, MaxChangeTickPercent);
+		ChangeTickPercent = FMath::Clamp(Value, MinChangeTickPercent, MaxChangeTickPercent);
 	}
 
 	UFUNCTION(BlueprintCallable)
 	int GetAppleLifeTime() const { return AppleLifeTime; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetAppleLifeTime(int NewAppleLifeTime)
+	void SetAppleLifeTime(int Value)
 	{
-		AppleLifeTime = FMath::Clamp(NewAppleLifeTime, MinAppleLifeTime, MaxAppleLifeTime);
+		AppleLifeTime = FMath::Clamp(Value, MinAppleLifeTime, MaxAppleLifeTime);
 	}
 
 	UFUNCTION(BlueprintCallable)
 	int GetOrangeChance() const { return OrangeChance; }
 
 	UFUNCTION(BlueprintCallable)
-	void SetOrangeChance(int NewOrangeChance)
+	void SetOrangeChance(int Value)
 	{
-		OrangeChance = FMath::Clamp(NewOrangeChance, MinOrangeChance, MaxOrangeChance);
+		OrangeChance = FMath::Clamp(Value, MinOrangeChance, MaxOrangeChance);
+	}
+
+	UFUNCTION(BlueprintCallable)
+	int GetBackgroundMusicVolume() const { return BackgroundMusicVolume; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetBackgroundMusicVolume(int Value)
+	{
+		BackgroundMusicVolume = FMath::Clamp(Value, MinBackgroundMusicVolume, MaxBackgroundMusicVolume);
 	}
 };

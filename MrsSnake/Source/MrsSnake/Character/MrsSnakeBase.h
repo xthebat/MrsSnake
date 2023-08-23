@@ -28,6 +28,7 @@ public:
 	float GetElementSpace() const { return ElementSpace; }
 	float GetLifeTimeStart() const { return LifeTimeStart; }
 	float GetLifeTimeRemain() const { return LifeTimeRemain; }
+	float GetTotalLifeTime() const { return TotalLifeTime; }
 	int GetScore() const { return Score; }
 
 	void ReleaseSnake();
@@ -43,6 +44,12 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void Destroyed() override;
+
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* MoveSound = {};
+
+	UPROPERTY(EditDefaultsOnly)
+	float MoveSoundVolume = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMesh* HeadStaticMesh = {};
@@ -71,6 +78,8 @@ protected:
 	float LifeTimeTick = 1.0f;
 
 	float LifeTimeRemain = LifeTimeStart;
+
+	float TotalLifeTime = 0.0f;
 
 	int Score = 0;
 
