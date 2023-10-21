@@ -405,3 +405,6 @@ Binaries/
 Saved/
 Intermediate/
 Releases/
+
+# Ignore built data cache (maps need to be rebuilt after pull)
+**_BuiltData.uasset
